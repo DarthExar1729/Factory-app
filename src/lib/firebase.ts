@@ -15,10 +15,15 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app, "ai-studio-87119f76-3f03-4052-9639-ba8e0cbc07dd");
 
-export const getUserRole = async (uid: string) => {
+export const getUserData = async (uid: string) => {
   const userDoc = await getDoc(doc(db, 'users', uid));
   if (userDoc.exists()) {
-    return userDoc.data().role;
+    return userDoc.data();
   }
   return null;
+};
+
+export const getUserRole = async (uid: string) => {
+  const data = await getUserData(uid);
+  return data?.role || null;
 };

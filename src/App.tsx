@@ -11,13 +11,19 @@ import Inventory from './pages/Inventory';
 import Sales from './pages/Sales';
 import SystemUsers from './pages/SystemUsers';
 
-const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: ('admin' | 'manager')[] }) => {
-  const { user, role, loading } = useAuth();
+const ProtectedRoute = ({ children, allowedRoles, requiredPermission }: { children: React.ReactNode, allowedRoles?: ('admin' | 'manager')[], requiredPermission?: string }) => {
+  const { user, role, permissions, loading } = useAuth();
   
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
   if (allowedRoles && role && !allowedRoles.includes(role)) {
     return <Navigate to="/dashboard" />;
+  }
+  
+  if (requiredPermission && role !== 'admin') {
+    if (!permissions.includes(requiredPermission)) {
+      return <Navigate to="/dashboard" />;
+    }
   }
   
   return <>{children}</>;
@@ -34,11 +40,11 @@ export default function App() {
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
-              <Route path="employees" element={<ProtectedRoute allowedRoles={['admin']}><Employees /></ProtectedRoute>} />
-              <Route path="attendance" element={<Attendance />} />
-              <Route path="production" element={<Production />} />
-              <Route path="inventory" element={<ProtectedRoute allowedRoles={['admin']}><Inventory /></ProtectedRoute>} />
-              <Route path="sales" element={<ProtectedRoute allowedRoles={['admin']}><Sales /></ProtectedRoute>} />
+              <Route path="employees" element={<ProtectedRoute requiredPermission="employees"><Employees /></ProtectedRoute>} />
+              <Route path="attendance" element={<ProtectedRoute requiredPermission="attendance"><Attendance /></ProtectedRoute>} />
+              <Route path="production" element={<ProtectedRoute requiredPermission="production"><Production /></ProtectedRoute>} />
+              <Route path="inventory" element={<ProtectedRoute requiredPermission="inventory"><Inventory /></ProtectedRoute>} />
+              <Route path="sales" element={<ProtectedRoute requiredPermission="sales"><Sales /></ProtectedRoute>} />
               <Route path="users" element={<ProtectedRoute allowedRoles={['admin']}><SystemUsers /></ProtectedRoute>} />
             </Route>
           </Routes>

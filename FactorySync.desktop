@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=FactorySync
+Comment=Launch FactorySync Dashboard
+Exec=npm run dev
+Icon=utilities-terminal
+Terminal=true
+Type=Application
+Categories=Application;

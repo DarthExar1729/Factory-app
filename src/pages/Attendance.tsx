@@ -11,6 +11,7 @@ export default function Attendance() {
   const [attendance, setAttendance] = useState<Record<string, any>>({});
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
+  const [notes, setNotes] = useState<Record<string, string>>({});
 
   const fetchData = async () => {
     setLoading(true);
@@ -35,11 +36,12 @@ export default function Attendance() {
     fetchData();
   }, [date]);
 
-  const markAttendance = async (employeeId: string, status: string) => {
+  const markAttendance = async (employeeId: string, status: string, note: string = '') => {
     await addDoc(collection(db, "attendance"), {
       employeeId,
       date,
       status,
+      note,
       recordedBy: user?.uid
     });
     fetchData(); // re-fetch to update state
@@ -85,22 +87,32 @@ export default function Attendance() {
                     <td className="py-3">{emp.department}</td>
                     <td className="py-3">
                       {record ? (
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                          record.status === 'Present' ? 'bg-green-100 text-green-700' : 
-                          record.status === 'Absent' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
-                          {record.status === 'Present' ? t.present : record.status === 'Absent' ? t.absent : t.leave}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] w-max font-black uppercase tracking-wider ${
+                            record.status === 'Present' ? 'bg-green-100 text-green-700' : 
+                            record.status === 'Absent' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {record.status === 'Present' ? t.present : record.status === 'Absent' ? t.absent : t.leave}
+                          </span>
+                          {record.note && <span className="text-[10px] text-slate-500 italic">"{record.note}"</span>}
+                        </div>
                       ) : (
                         <span className="text-[10px] uppercase font-bold text-slate-400 italic">Not marked</span>
                       )}
                     </td>
                     <td className="py-3 text-right">
                       {!record && (
-                        <div className="flex justify-end gap-2">
-                          <button onClick={() => markAttendance(emp.id, 'Present')} className="text-green-700 hover:text-green-800 bg-green-50 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">{t.present}</button>
-                          <button onClick={() => markAttendance(emp.id, 'Absent')} className="text-rose-700 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">{t.absent}</button>
-                          <button onClick={() => markAttendance(emp.id, 'Leave')} className="text-amber-700 hover:text-amber-800 bg-amber-50 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">{t.leave}</button>
+                        <div className="flex items-center justify-end gap-2">
+                          <input 
+                            type="text" 
+                            placeholder={t.notes || "Note (optional)"}
+                            value={notes[emp.id] || ''}
+                            onChange={(e) => setNotes({ ...notes, [emp.id]: e.target.value })}
+                            className="border border-slate-200 rounded px-2 py-1 text-xs focus:border-blue-500 focus:outline-none w-32"
+                          />
+                          <button onClick={() => markAttendance(emp.id, 'Present', notes[emp.id])} className="text-green-700 hover:text-green-800 bg-green-50 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">{t.present}</button>
+                          <button onClick={() => markAttendance(emp.id, 'Absent', notes[emp.id])} className="text-rose-700 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">{t.absent}</button>
+                          <button onClick={() => markAttendance(emp.id, 'Leave', notes[emp.id])} className="text-amber-700 hover:text-amber-800 bg-amber-50 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">{t.leave}</button>
                         </div>
                       )}
                     </td>

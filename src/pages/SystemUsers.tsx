@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { db } from '../lib/firebase';
@@ -15,7 +15,6 @@ const firebaseConfig = {
   messagingSenderId: "162992494219",
 };
 
-// We use a secondary app instance to create users without logging out the current admin user
 const secondaryApp = getApps().find(app => app.name === 'Secondary') || initializeApp(firebaseConfig, "Secondary");
 const secondaryAuth = getAuth(secondaryApp);
 
@@ -25,7 +24,16 @@ interface AppUser {
   role: 'admin' | 'manager';
   name: string;
   createdAt: string;
+  permissions?: string[];
 }
+
+const AVAILABLE_MODULES = [
+  { id: 'employees', label: 'Employees' },
+  { id: 'attendance', label: 'Attendance' },
+  { id: 'production', label: 'Production' },
+  { id: 'inventory', label: 'Inventory' },
+  { id: 'sales', label: 'Sales' }
+];
 
 export default function SystemUsers() {
   const { t } = useTranslation();
@@ -66,17 +74,14 @@ export default function SystemUsers() {
     setError('');
     setSuccess('');
     try {
-      // 1. Create user in Firebase Auth using the secondary app instance
       const userCred = await createUserWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
-      
-      // 2. Immediately sign them out of the secondary app
       await signOut(secondaryAuth);
 
-      // 3. Create user document in Firestore
       await setDoc(doc(db, 'users', userCred.user.uid), {
         email: userCred.user.email,
         role: formData.role,
         name: formData.name,
+        permissions: formData.role === 'manager' ? ['attendance', 'production'] : [],
         createdAt: new Date().toISOString()
       });
 
@@ -86,6 +91,19 @@ export default function SystemUsers() {
       fetchUsers();
     } catch (err: any) {
       setError(err.message || 'Failed to create user');
+    }
+  };
+
+  const togglePermission = async (userId: string, currentPermissions: string[] = [], moduleId: string) => {
+    const newPermissions = currentPermissions.includes(moduleId)
+      ? currentPermissions.filter(p => p !== moduleId)
+      : [...currentPermissions, moduleId];
+      
+    try {
+      await updateDoc(doc(db, 'users', userId), { permissions: newPermissions });
+      setUsers(users.map(u => u.id === userId ? { ...u, permissions: newPermissions } : u));
+    } catch (error) {
+      console.error("Error updating permissions", error);
     }
   };
 
@@ -148,7 +166,7 @@ export default function SystemUsers() {
             <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-tighter">
               <th className="pb-2">{t.name}</th>
               <th className="pb-2">{t.email}</th>
-              <th className="pb-2">Role</th>
+              <th className="pb-2">Role & Access</th>
               <th className="pb-2 text-right">Created</th>
             </tr>
           </thead>
@@ -160,15 +178,35 @@ export default function SystemUsers() {
             ) : (
               users.map((u) => (
                 <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50">
-                  <td className="py-3 font-bold text-slate-900">{u.name}</td>
-                  <td className="py-3 text-slate-500">{u.email}</td>
-                  <td className="py-3">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${u.role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>
-                      {u.role === 'admin' ? <ShieldAlert className="w-3 h-3" /> : <User className="w-3 h-3" />}
-                      {u.role}
-                    </span>
+                  <td className="py-4 font-bold text-slate-900 align-top">{u.name}</td>
+                  <td className="py-4 text-slate-500 align-top">{u.email}</td>
+                  <td className="py-4 align-top">
+                    <div className="space-y-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${u.role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>
+                        {u.role === 'admin' ? <ShieldAlert className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                        {u.role}
+                      </span>
+                      {u.role === 'manager' && (
+                        <div className="flex flex-wrap gap-2 max-w-sm mt-2">
+                          {AVAILABLE_MODULES.map(mod => {
+                            const hasAccess = u.permissions?.includes(mod.id);
+                            return (
+                              <label key={mod.id} className="flex items-center gap-1.5 cursor-pointer bg-slate-50 border border-slate-200 px-2 py-1 rounded text-[10px] uppercase font-bold hover:bg-slate-100">
+                                <input 
+                                  type="checkbox" 
+                                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                  checked={hasAccess || false}
+                                  onChange={() => togglePermission(u.id, u.permissions, mod.id)}
+                                />
+                                <span className={hasAccess ? 'text-slate-900' : 'text-slate-400'}>{mod.label}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </td>
-                  <td className="py-3 text-right text-slate-400 italic">
+                  <td className="py-4 text-right text-slate-400 italic align-top">
                     {new Date(u.createdAt).toLocaleDateString()}
                   </td>
                 </tr>

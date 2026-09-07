@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth, getUserRole } from './firebase';
+import { auth, getUserData } from './firebase';
 
 interface AuthContextType {
   user: User | null;
   role: 'admin' | 'manager' | null;
+  permissions: string[];
   loading: boolean;
   logout: () => Promise<void>;
   loginAsDemo: () => void;
@@ -13,6 +14,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   role: null,
+  permissions: [],
   loading: true,
   logout: async () => {},
   loginAsDemo: () => {},
@@ -21,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<'admin' | 'manager' | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(localStorage.getItem('demo_mode') === 'true');
 
@@ -28,6 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isDemo) {
       setUser({ email: 'demo@factorysync.com', uid: 'demo-admin-uid' } as User);
       setRole('admin');
+      setPermissions(['employees', 'attendance', 'production', 'inventory', 'sales', 'users']);
       setLoading(false);
       return;
     }
@@ -35,10 +39,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        const userRole = await getUserRole(currentUser.uid);
-        setRole(userRole as 'admin' | 'manager');
+        const userData = await getUserData(currentUser.uid);
+        setRole(userData?.role as 'admin' | 'manager');
+        setPermissions(userData?.permissions || []);
       } else {
         setRole(null);
+        setPermissions([]);
       }
       setLoading(false);
     });
@@ -52,6 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsDemo(false);
       setUser(null);
       setRole(null);
+      setPermissions([]);
     } else {
       await signOut(auth);
     }
@@ -63,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, loading, logout, loginAsDemo }}>
+    <AuthContext.Provider value={{ user, role, permissions, loading, logout, loginAsDemo }}>
       {!loading && children}
     </AuthContext.Provider>
   );

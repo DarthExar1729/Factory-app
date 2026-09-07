@@ -26,40 +26,46 @@ export default function Layout() {
             <span className="text-xs uppercase font-semibold">{t.dashboard}</span>
           </NavLink>
           
-          {role === 'admin' && (
+          {(role === 'admin' || permissions.includes('employees')) && (
             <NavLink to="/employees" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
               <Users className="w-5 h-5" />
               <span className="text-xs uppercase font-semibold">{t.employees}</span>
             </NavLink>
           )}
 
-          <NavLink to="/attendance" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
-            <ClipboardCheck className="w-5 h-5" />
-            <span className="text-xs uppercase font-semibold">{t.attendance}</span>
-          </NavLink>
+          {(role === 'admin' || permissions.includes('attendance')) && (
+            <NavLink to="/attendance" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
+              <ClipboardCheck className="w-5 h-5" />
+              <span className="text-xs uppercase font-semibold">{t.attendance}</span>
+            </NavLink>
+          )}
 
-          <NavLink to="/production" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
-            <Factory className="w-5 h-5" />
-            <span className="text-xs uppercase font-semibold">{t.production}</span>
-          </NavLink>
+          {(role === 'admin' || permissions.includes('production')) && (
+            <NavLink to="/production" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
+              <Factory className="w-5 h-5" />
+              <span className="text-xs uppercase font-semibold">{t.production}</span>
+            </NavLink>
+          )}
+
+          {(role === 'admin' || permissions.includes('inventory')) && (
+            <NavLink to="/inventory" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
+              <Package className="w-5 h-5" />
+              <span className="text-xs uppercase font-semibold">{t.inventory}</span>
+            </NavLink>
+          )}
+
+          {(role === 'admin' || permissions.includes('sales')) && (
+            <NavLink to="/sales" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
+              <ShoppingCart className="w-5 h-5" />
+              <span className="text-xs uppercase font-semibold">{t.sales}</span>
+            </NavLink>
+          )}
 
           {role === 'admin' && (
-            <>
-              <NavLink to="/inventory" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
-                <Package className="w-5 h-5" />
-                <span className="text-xs uppercase font-semibold">{t.inventory}</span>
-              </NavLink>
-
-              <NavLink to="/sales" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
-                <ShoppingCart className="w-5 h-5" />
-                <span className="text-xs uppercase font-semibold">{t.sales}</span>
-              </NavLink>
-
-              <NavLink to="/users" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
-                <ShieldCheck className="w-5 h-5" />
-                <span className="text-xs uppercase font-semibold">{t.systemUsers}</span>
-              </NavLink>
-            </>
+            <NavLink to="/users" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
+              <ShieldCheck className="w-5 h-5" />
+              <span className="text-xs uppercase font-semibold">{t.systemUsers}</span>
+            </NavLink>
           )}
         </nav>
 
@@ -77,7 +83,7 @@ export default function Layout() {
           <div className="flex items-center gap-6">
             <div className="flex bg-slate-100 rounded-full p-1 text-xs font-bold items-center">
               <button onClick={() => setLanguage('en')} className={`px-3 py-1 rounded-full ${language === 'en' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>English</button>
-              <button onClick={() => setLanguage('es')} className={`px-3 py-1 rounded-full ${language === 'es' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>Español</button>
+              <button onClick={() => setLanguage('hi')} className={`px-3 py-1 rounded-full ${language === 'hi' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>हिंदी (Hindi)</button>
             </div>
             <button onClick={logout} className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-700 uppercase tracking-wider">
               <LogOut className="w-4 h-4" />
