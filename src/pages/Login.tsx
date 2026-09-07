@@ -5,15 +5,17 @@ import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { useTranslation } from '../lib/i18n';
 import { Factory } from 'lucide-react';
+import { useAuth } from '../lib/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-  const [role, setRole] = useState('manager');
+  const [role, setRole] = useState('admin');
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { loginAsDemo } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +34,17 @@ export default function Login() {
       }
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Authentication failed');
+      if (err.code === 'auth/operation-not-allowed') {
+        setError('Email/Password auth is not enabled in Firebase. Please enable it in the Firebase Console first.');
+      } else {
+        setError(err.message || 'Authentication failed');
+      }
     }
+  };
+
+  const handleDemoLogin = () => {
+    loginAsDemo();
+    navigate('/dashboard');
   };
 
   return (
@@ -101,19 +112,27 @@ export default function Login() {
                     onChange={(e) => setRole(e.target.value)}
                     className="appearance-none block w-full px-3 py-2 border border-slate-200 rounded text-sm focus:outline-none focus:border-blue-500"
                   >
-                    <option value="manager">Manager</option>
                     <option value="admin">Admin</option>
+                    <option value="manager">Manager</option>
                   </select>
                 </div>
               </div>
             )}
 
-            <div>
+            <div className="space-y-3">
               <button
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded text-[10px] font-bold uppercase tracking-widest text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
               >
-                {isRegistering ? 'Register' : t.signIn}
+                {isRegistering ? 'Register Initial Admin' : t.signIn}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                className="w-full flex justify-center py-2 px-4 border border-slate-200 rounded text-[10px] font-bold uppercase tracking-widest text-slate-700 bg-white hover:bg-slate-50 focus:outline-none"
+              >
+                Bypass Firebase (Test Drive Mode)
               </button>
             </div>
             
@@ -123,7 +142,7 @@ export default function Login() {
                 onClick={() => setIsRegistering(!isRegistering)}
                 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-700"
               >
-                {isRegistering ? 'Already have an account? Sign in' : 'Need an account? Register demo user'}
+                {isRegistering ? 'Already have an account? Sign in' : 'First time setup? Register admin'}
               </button>
             </div>
           </form>

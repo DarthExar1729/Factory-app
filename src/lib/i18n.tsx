@@ -50,6 +50,8 @@ const translations = {
     accessDenied: "Access Denied",
     unauthorizedMessage: "You do not have permission to view this page.",
     welcome: "Welcome",
+    systemUsers: "System Users",
+    addUser: "Add User",
   },
   es: {
     dashboard: "Panel Principal",
@@ -98,6 +100,8 @@ const translations = {
     accessDenied: "Acceso Denegado",
     unauthorizedMessage: "No tienes permiso para ver esta página.",
     welcome: "Bienvenido",
+    systemUsers: "Usuarios del Sistema",
+    addUser: "Agregar Usuario",
   }
 };
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { useTranslation } from '../lib/i18n';
-import { LayoutDashboard, Users, ClipboardCheck, Factory, Package, ShoppingCart, LogOut, Globe } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardCheck, Factory, Package, ShoppingCart, LogOut, Globe, ShieldCheck } from 'lucide-react';
 
 export default function Layout() {
   const { role, logout, user } = useAuth();
@@ -53,6 +53,11 @@ export default function Layout() {
               <NavLink to="/sales" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
                 <ShoppingCart className="w-5 h-5" />
                 <span className="text-xs uppercase font-semibold">{t.sales}</span>
+              </NavLink>
+
+              <NavLink to="/users" className={({isActive}) => `flex items-center gap-3 p-3 rounded-md transition-colors border-l-4 ${isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500' : 'border-transparent text-slate-400 hover:bg-slate-800'}`}>
+                <ShieldCheck className="w-5 h-5" />
+                <span className="text-xs uppercase font-semibold">{t.systemUsers}</span>
               </NavLink>
             </>
           )}

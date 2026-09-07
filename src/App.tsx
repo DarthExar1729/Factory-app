@@ -9,6 +9,7 @@ import Attendance from './pages/Attendance';
 import Production from './pages/Production';
 import Inventory from './pages/Inventory';
 import Sales from './pages/Sales';
+import SystemUsers from './pages/SystemUsers';
 
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: ('admin' | 'manager')[] }) => {
   const { user, role, loading } = useAuth();
@@ -38,6 +39,7 @@ export default function App() {
               <Route path="production" element={<Production />} />
               <Route path="inventory" element={<ProtectedRoute allowedRoles={['admin']}><Inventory /></ProtectedRoute>} />
               <Route path="sales" element={<ProtectedRoute allowedRoles={['admin']}><Sales /></ProtectedRoute>} />
+              <Route path="users" element={<ProtectedRoute allowedRoles={['admin']}><SystemUsers /></ProtectedRoute>} />
             </Route>
           </Routes>
         </BrowserRouter>
