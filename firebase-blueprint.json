@@ -1,0 +1,57 @@
+{
+  "schema": {
+    "users": {
+      "__description": "User profiles and roles for RBAC",
+      "__security": "Users can read their own profile. Admins can read/write all.",
+      "email": "string",
+      "role": "string ('admin' | 'manager')",
+      "name": "string",
+      "createdAt": "timestamp"
+    },
+    "employees": {
+      "__description": "Employee records",
+      "__security": "Admins and managers can read. Admins can write.",
+      "name": "string",
+      "position": "string",
+      "currentlyDoing": "string",
+      "supervisorId": "string",
+      "status": "string",
+      "department": "string"
+    },
+    "attendance": {
+      "__description": "Daily attendance logs",
+      "__security": "Admins and managers can read/write.",
+      "date": "string (YYYY-MM-DD)",
+      "employeeId": "string",
+      "status": "string ('Present' | 'Absent' | 'Leave')",
+      "recordedBy": "string (uid)"
+    },
+    "production": {
+      "__description": "Daily production reports",
+      "__security": "Admins and managers can read/write.",
+      "date": "string (YYYY-MM-DD)",
+      "totalProduced": "number",
+      "notes": "string",
+      "recordedBy": "string (uid)"
+    },
+    "inventory": {
+      "__description": "Inventory stock levels",
+      "__security": "Admins can read/write.",
+      "itemName": "string",
+      "sku": "string",
+      "quantity": "number",
+      "unit": "string",
+      "threshold": "number"
+    },
+    "sales": {
+      "__description": "Sales and dispatch orders",
+      "__security": "Admins can read/write.",
+      "orderId": "string",
+      "date": "string",
+      "items": "array of objects",
+      "status": "string ('Pending' | 'Dispatched')",
+      "dispatchDate": "string"
+    }
+  },
+  "rules": "rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    function isAuthenticated() {\n      return request.auth != null;\n    }\n    \n    function getUserData() {\n      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;\n    }\n    \n    function isAdmin() {\n      return isAuthenticated() && getUserData().role == 'admin';\n    }\n    \n    function isManager() {\n      return isAuthenticated() && getUserData().role == 'manager';\n    }\n    \n    function hasAtLeastManagerAccess() {\n      return isAdmin() || isManager();\n    }\n\n    match /users/{userId} {\n      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());\n      allow write: if isAdmin();\n    }\n    \n    match /employees/{employeeId} {\n      allow read: if hasAtLeastManagerAccess();\n      allow write: if isAdmin();\n    }\n    \n    match /attendance/{attendanceId} {\n      allow read, write: if hasAtLeastManagerAccess();\n    }\n    \n    match /production/{reportId} {\n      allow read, write: if hasAtLeastManagerAccess();\n    }\n    \n    match /inventory/{itemId} {\n      allow read, write: if isAdmin();\n    }\n    \n    match /sales/{saleId} {\n      allow read, write: if isAdmin();\n    }\n  }\n}"
+}

@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "FactorySync",
+  "description": "A bilingual factory management system with RBAC for employees, attendance, production, inventory, and sales.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
